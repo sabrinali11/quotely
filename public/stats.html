@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Quotely — Stats</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="styles.css" />
+<style>
+  #app { max-width: 720px; }
+  .stat-row { display: flex; gap: 16px; margin-bottom: 24px; }
+  .stat-box {
+    flex: 1;
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 22px;
+    text-align: center;
+  }
+  .stat-box .n { font-family: var(--font-mono); font-size: 32px; font-weight: 700; color: var(--navy); }
+  .stat-box .l { font-size: 13px; color: var(--text-muted); margin-top: 6px; }
+  .feed-item {
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 16px;
+    margin-bottom: 10px;
+  }
+  .feed-item .r {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    padding: 2px 8px;
+    border-radius: 999px;
+    margin-bottom: 8px;
+  }
+  .r-hell_yes { background: var(--good-bg); color: var(--good); }
+  .r-interested { background: #fdf0e9; color: var(--accent-dark); }
+  .r-meh { background: var(--surface-alt); color: var(--text-muted); }
+  .feed-item .c { font-size: 14px; color: var(--text); }
+  .feed-item .t { font-size: 11px; color: #a3a3a3; margin-top: 6px; font-family: var(--font-mono); }
+  .refresh-btn { margin-bottom: 20px; }
+</style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="logo">Quotely<span class="logo-dot">.</span></div>
+      <div class="tagline">Presenter stats — not linked from the public site</div>
+    </div>
+  </header>
+  <main id="app">
+    <h2 style="margin-top:0;">Live usage &amp; feedback</h2>
+    <button class="btn btn-ghost refresh-btn" id="refresh-btn">Refresh</button>
+    <div class="stat-row">
+      <div class="stat-box"><div class="n" id="stat-quotes">—</div><div class="l">Quotes completed</div></div>
+      <div class="stat-box"><div class="n" id="stat-feedback">—</div><div class="l">Feedback submitted</div></div>
+      <div class="stat-box"><div class="n" id="stat-hellyes">—</div><div class="l">"Hell yes" reactions</div></div>
+    </div>
+    <h3>Recent feedback</h3>
+    <div id="feed-list"></div>
+  </main>
+  <script>
+    const REACTION_LABEL = { hell_yes: "Hell yes!", interested: "Interested", meh: "Meh" };
+
+    async function load() {
+      const res = await fetch("/api/stats");
+      const data = await res.json();
+      document.getElementById("stat-quotes").textContent = data.quotesCompleted;
+      document.getElementById("stat-feedback").textContent = data.totalFeedback;
+      document.getElementById("stat-hellyes").textContent = data.feedbackCounts.hell_yes;
+
+      const list = document.getElementById("feed-list");
+      if (!data.recentFeedback.length) {
+        list.innerHTML = '<p style="color:var(--text-muted)">No feedback yet.</p>';
+        return;
+      }
+      list.innerHTML = data.recentFeedback.map((f) => `
+        <div class="feed-item">
+          <span class="r r-${f.reaction}">${REACTION_LABEL[f.reaction] || f.reaction}</span>
+          ${f.comment ? `<div class="c">${f.comment}</div>` : ""}
+          <div class="t">${new Date(f.ts).toLocaleString()}</div>
+        </div>
+      `).join("");
+    }
+
+    document.getElementById("refresh-btn").addEventListener("click", load);
+    load();
+  </script>
+</body>
+</html>

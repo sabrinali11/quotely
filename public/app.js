@@ -440,3 +440,21 @@ function renderResults(data) {
 populateStateSelect();
 populateCurrentInsurerSelect();
 restoreSavedProfile();
+
+document.querySelectorAll("#feedback-widget [data-reaction]").forEach((btn) => {
+  btn.addEventListener("click", async () => {
+    const reaction = btn.dataset.reaction;
+    const comment = document.getElementById("feedback-comment").value.trim();
+    document.querySelectorAll("#feedback-widget [data-reaction]").forEach((b) => { b.disabled = true; });
+    try {
+      await fetch("/api/feedback", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ reaction, comment }),
+      });
+    } catch (err) {
+      // best-effort — don't block the user on a failed feedback post
+    }
+    document.getElementById("feedback-thanks").classList.remove("hidden");
+  });
+});

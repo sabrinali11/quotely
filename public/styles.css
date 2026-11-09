@@ -678,6 +678,46 @@ body {
 }
 .quote-actions a:hover { background: var(--border); }
 
+.feedback-widget {
+  background: var(--surface-alt);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 24px 28px;
+  margin-bottom: 24px;
+}
+.feedback-widget h3 {
+  margin: 0 0 14px;
+  font-size: 17px;
+  color: var(--navy);
+}
+.feedback-widget textarea {
+  width: 100%;
+  padding: 11px 14px;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  font-family: var(--font-sans);
+  font-size: 14px;
+  color: var(--text);
+  background: var(--white);
+  resize: vertical;
+  margin-bottom: 14px;
+}
+.feedback-buttons {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.feedback-buttons .btn {
+  padding: 9px 18px;
+  font-size: 14px;
+}
+.feedback-thanks {
+  margin: 14px 0 0;
+  font-size: 13px;
+  color: var(--good);
+  font-weight: 600;
+}
+
 .results-footer {
   margin-top: 28px;
   display: flex;

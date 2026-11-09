@@ -2,6 +2,7 @@ const path = require("path");
 const express = require("express");
 const { getQuotes } = require("./lib/rateEngine");
 const { STATE_FACTORS } = require("./lib/stateFactors");
+const store = require("./lib/store");
 
 const app = express();
 const PORT = process.env.PORT || 4321;
@@ -115,11 +116,25 @@ app.post("/api/quote", (req, res) => {
     return res.status(400).json({ error: "invalid_input", details: errors });
   }
   const result = getQuotes(clean);
+  store.recordQuoteCompletion();
   res.json(result);
 });
 
 app.get("/api/states", (_req, res) => {
   res.json({ states: [...VALID_STATES].sort() });
+});
+
+app.post("/api/feedback", (req, res) => {
+  const { reaction, comment } = req.body || {};
+  const ok = store.recordFeedback({ reaction, comment });
+  if (!ok) {
+    return res.status(400).json({ error: "invalid_reaction" });
+  }
+  res.json({ ok: true });
+});
+
+app.get("/api/stats", (_req, res) => {
+  res.json(store.getStats());
 });
 
 app.listen(PORT, () => {
