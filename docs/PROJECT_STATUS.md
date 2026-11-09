@@ -23,6 +23,9 @@ live insurance quoting.
   "Why this price?" breakdown for every quote.
 - 7 national carriers + per-state regional carriers (0–3 real named candidates per state + a
   generic independent-agent floor) — see `lib/regionalCarriers.js` for exact per-state coverage.
+  Only CO, DE, MT, and NV currently have zero named candidates; every other state has at least one
+  real, verified regional carrier (most recently added: Umialik/AK, DTRIC/HI, MMG/ME, Concord
+  Group/NH, Co-operative/VT).
 - Vehicle make/model-specific pricing for ~13 well-documented models (real 2026 data), falling
   back to generic body-style pricing otherwise.
 - Personalized savings calculation when the user enters their current monthly premium.
@@ -30,18 +33,28 @@ live insurance quoting.
   accept pre-filled quote links, confirmed by testing GEICO and Progressive directly.
 - Browser localStorage persistence of the user's last answers (`quotely_profile_v1`), with a
   "Welcome back" banner and a clear-data control.
-- Lightweight usage tracking + in-app feedback widget (Meh / Interested / Hell yes! + optional
-  comment), backed by a local JSON file, with a presenter-only dashboard at `/stats.html`.
+- ~~Lightweight usage tracking + in-app feedback widget~~ — **built, then removed per user
+  request.** The backend (`POST /api/feedback`, `GET /api/stats`, `lib/store.js`, and
+  `public/stats.html`) is still in place and functional but nothing in the UI calls it anymore;
+  `/api/quote` still increments a quote-completion counter via `lib/store.js`. Treat this as
+  orphaned code unless a future session is asked to either remove it fully or re-wire a UI to it.
 - Neutral/navy/orange visual design (iterated through, then reverted from, a neubrutalist pass).
 - Deployed to Render (free tier) at quotelyinsurance.onrender.com, connected to the public GitHub
   repo `sabrinali11/quotely` for auto-deploy on push to `main`.
 
 ## Current state — what's live vs. not
 
-All commits have been pushed and deployed as of 2026-11-09. Render's GitHub App is now connected
-(previously it was linked via "Public Git Repository," which gets no webhook and silently never
-auto-deploys after the first push — found and fixed this session). A normal `git push origin
-main` should now redeploy automatically; no manual "Deploy latest commit" step should be needed.
+Everything is in sync as of 2026-11-09: local working tree is clean, local `main` and
+`origin/main` point at the identical commit, and the live Render deployment
+(quotelyinsurance.onrender.com) has been directly verified to match — tested the Hawaii/DTRIC
+regional carrier, the Honda CR-V vehicle-model lookup, and the absence of the removed feedback
+widget against the live URL itself, not just assumed from the push succeeding.
+
+Render's GitHub App is connected (previously it was linked via "Public Git Repository," which
+gets no webhook and silently never auto-deploys after the first push — found and fixed this
+session). A normal `git push origin main` now redeploys automatically within ~10-20 seconds; no
+manual "Deploy latest commit" step is needed. This was confirmed with a real test push, not just
+assumed from the settings.
 
 ## Known gaps / limitations
 
@@ -89,7 +102,7 @@ National baseline: **$2,339/yr** (NerdWallet, Jan 2026) — `lib/rateEngine.js`,
 | Teen driver surcharge | Verified real | CarInsurance.com, 2026 |
 | State risk — AL, AK, FL, GA, LA only | Verified real | Bankrate, 2026 |
 | State risk — all other states | Illustrative | General reported regional patterns, not individually sourced filed rates |
-| Regional carrier identities (company names, states of operation) | Real companies | Not re-verified in this documentation pass — flag if found otherwise |
+| Regional carrier identities (company names, states of operation) | Real companies | Most re-verified via live web search in-session (Erie's multi-state footprint, Umialik/AK, DTRIC/HI, MMG/ME, Concord Group/NH, Co-operative/VT); a few earlier entries (e.g. some state Farm Bureau domains) are unverified domain guesses, flagged in the UI as "lower confidence" |
 | Regional carrier rate multipliers | Illustrative | No public per-carrier rate data exists for these smaller insurers |
 | Vehicle make/model (13 specific models) | Verified real | Insurance.com / CarInsurance.com, 2026 |
 | Vehicle age/depreciation curve | Illustrative | Own estimate, not a specific sourced table |

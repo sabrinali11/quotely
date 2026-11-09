@@ -31,6 +31,8 @@ No automated test suite exists yet (see `docs/PROJECT_STATUS.md`).
   - `POST /api/quote` — validates input, calls `lib/rateEngine.getQuotes()`, records a completion.
   - `GET /api/states` — valid state codes.
   - `POST /api/feedback` — records a tester reaction (`meh`/`interested`/`hell_yes`) + comment.
+    **Orphaned**: the in-app feedback widget that called this was removed from the UI; the
+    endpoint and `lib/store.js` still work, nothing currently posts to them.
   - `GET /api/stats` — aggregate usage/feedback counts (read by `public/stats.html`).
 - **`lib/rateEngine.js`** — the pricing model. Starts from a $2,339/yr national baseline
   (NerdWallet, Jan 2026) and multiplies through ~20 factors (age, vehicle, state, credit tier,
@@ -40,8 +42,10 @@ No automated test suite exists yet (see `docs/PROJECT_STATUS.md`).
 - **`lib/carriers.js`** — 7 national carrier profiles (GEICO, State Farm, Progressive, Liberty
   Mutual, Allstate, Nationwide, USAA) + the generic "Local independent agents" fallback.
 - **`lib/regionalCarriers.js`** — per-state arrays of real regional/state-specific carriers
-  (Erie, Mercury, NJM, state Farm Bureau affiliates, Auto-Owners, etc.). 0–3 named candidates per
-  state; the generic fallback is always added on top in `rateEngine.js`.
+  (Erie, Mercury, NJM, state Farm Bureau affiliates, Auto-Owners, Umialik, DTRIC, MMG, Concord
+  Group, Co-operative, etc.). 0–3 named candidates per state; the generic fallback is always
+  added on top in `rateEngine.js`. Only CO, DE, MT, NV currently have zero named candidates — no
+  confident real regional carrier was found for them (don't invent one; leave the gap honest).
 - **`lib/stateFactors.js`** — relative cost-of-insurance index per state. Only 5 states (AL, AK,
   FL, GA, LA) trace to a real Bankrate figure; the rest are labeled illustrative.
 - **`lib/vehicleModels.js`** — ~13 specific make/model combos with real published rate
@@ -52,8 +56,8 @@ No automated test suite exists yet (see `docs/PROJECT_STATUS.md`).
 - **`public/index.html`** — single-page app: hero + 3-step form + results, all in one DOM,
   toggled by a `hidden` CSS class (`showView()` in `app.js`).
 - **`public/app.js`** — client-side logic: form state, localStorage profile persistence (key
-  `quotely_profile_v1`), API calls, results rendering, feedback widget, "copy my info" clipboard
-  helper with a visible-textbox fallback.
+  `quotely_profile_v1`), API calls, results rendering, "copy my info" clipboard helper with a
+  visible-textbox fallback. (No feedback UI — removed per user request; see `server.js` note.)
 - **`public/stats.html`** — presenter-only dashboard (not linked from the public site), polls
   `GET /api/stats`.
 - **`public/styles.css`** — plain CSS, custom properties for the neutral/navy/orange palette.
