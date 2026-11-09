@@ -38,12 +38,10 @@ live insurance quoting.
 
 ## Current state — what's live vs. not
 
-**GitHub `main` is 3 commits ahead of what's deployed on Render.** The regional-carrier expansion,
-the feedback widget + stats dashboard, and the vehicle make/model work are committed locally but
-not yet pushed, so the live Render URL is still running only the initial commit.
-
-→ If continuing this project: `git push` to bring Render up to date before any further live
-testing or demoing, if those newer features should be part of what testers see.
+All commits have been pushed and deployed as of 2026-11-09. Render's GitHub App is now connected
+(previously it was linked via "Public Git Repository," which gets no webhook and silently never
+auto-deploys after the first push — found and fixed this session). A normal `git push origin
+main` should now redeploy automatically; no manual "Deploy latest commit" step should be needed.
 
 ## Known gaps / limitations
 
@@ -68,7 +66,6 @@ testing or demoing, if those newer features should be part of what testers see.
 
 ## Pending / suggested next steps
 
-- Push the 3 local commits to GitHub so Render redeploys with the latest features.
 - Decide whether to fix the homepage's unverified "Amaro Law Firm" citation (drop it, or replace
   with a verified source) — this was offered to the user previously and not yet actioned.
 - If expanding rating factors further, keep following the "every factor needs a `source` string"
