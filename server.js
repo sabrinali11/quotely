@@ -9,7 +9,7 @@ const monitor = require("./lib/monitor");
 
 const app = express();
 const PORT = process.env.PORT || 4321;
-const FREQUENCIES = new Set(["weekly", "monthly"]);
+const FREQUENCIES = new Set(["weekly", "monthly", "continuous"]);
 const PHONE_DIGITS_RE = /^1?\d{10}$/;
 
 function normalizePhone(raw) {
@@ -240,6 +240,25 @@ app.get("/api/subscriptions/:id", async (req, res) => {
     });
   } catch (err) {
     console.error("get subscription failed:", err);
+    res.status(503).json({ error: "monitoring_unavailable" });
+  }
+});
+
+// Demo stand-in for "text RECHECK to your Quotely number" (see public/index.html) — re-prices
+// this one subscription right now instead of waiting for its scheduled check.
+app.post("/api/subscriptions/:id/recheck", async (req, res) => {
+  try {
+    const result = await monitor.recheckNow(req.params.id);
+    if (!result) return res.status(404).json({ error: "not_found" });
+    const sub = await subscriptions.getSubscription(req.params.id);
+    res.json({
+      improved: result.improved,
+      bestAnnualPremium: sub.bestAnnualPremium,
+      bestCarrierName: sub.bestCarrierName,
+      lastCheckedAt: sub.lastCheckedAt,
+    });
+  } catch (err) {
+    console.error("manual recheck failed:", err);
     res.status(503).json({ error: "monitoring_unavailable" });
   }
 });

@@ -492,21 +492,52 @@ function money0(n) {
   return `$${Math.round(n).toLocaleString("en-US")}`;
 }
 
+const FREQUENCY_LABELS = {
+  weekly: "every week",
+  monthly: "every month",
+  continuous: "continuously",
+};
+
 function renderTrackStatus(sub) {
   const statusEl = document.getElementById("track-quote-status");
   const lastChecked = sub.lastCheckedAt
-    ? new Date(sub.lastCheckedAt).toLocaleDateString()
+    ? new Date(sub.lastCheckedAt).toLocaleString()
     : "not yet — first check is coming up";
   statusEl.innerHTML = `
     <p>
-      Watching this quote <strong>${sub.frequency === "weekly" ? "every week" : "every month"}</strong>.
+      Watching this quote <strong>${FREQUENCY_LABELS[sub.frequency] || sub.frequency}</strong>.
       Best found so far: <strong>${sub.bestCarrierName}</strong> at ${money0(sub.bestAnnualPremium)}/yr.
       Last checked: ${lastChecked}.
     </p>
-    <button type="button" class="btn btn-ghost" id="stop-tracking-btn">Stop watching</button>
+    <p class="track-quote-recheck-note">
+      Something change — accident, new driver, different coverage? Don't wait for the next check.
+    </p>
+    <div class="track-quote-actions">
+      <button type="button" class="btn btn-ghost" id="recheck-now-btn">Recheck now</button>
+      <button type="button" class="btn btn-ghost" id="stop-tracking-btn">Stop watching</button>
+    </div>
   `;
   statusEl.classList.remove("hidden");
   document.getElementById("form-track-quote").classList.add("hidden");
+
+  document.getElementById("recheck-now-btn").addEventListener("click", async (e) => {
+    const button = e.target;
+    const original = button.textContent;
+    button.disabled = true;
+    button.textContent = "Rechecking...";
+    try {
+      const res = await fetch(`/api/subscriptions/${sub.id}/recheck`, { method: "POST" });
+      if (res.ok) {
+        const updated = await res.json();
+        renderTrackStatus({ ...sub, ...updated });
+        return;
+      }
+    } catch (err) {
+      // fall through to restoring the button below
+    }
+    button.disabled = false;
+    button.textContent = original;
+  });
 
   document.getElementById("stop-tracking-btn").addEventListener("click", async () => {
     try {

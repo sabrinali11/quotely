@@ -27,10 +27,15 @@ live insurance quoting.
   - `lib/sms.js` — **mocked** SMS send (no Twilio/carrier account exists). Logs
     `[MOCK SMS] to ***-***-1234: ...` to the console and to `data/sms-log.json`.
   - New endpoints: `POST /api/subscribe`, `GET /api/subscriptions/:id`,
-    `POST /api/subscriptions/:id/cancel`.
+    `POST /api/subscriptions/:id/recheck`, `POST /api/subscriptions/:id/cancel`.
   - New UI: "Keep watching this quote for me" card in the results view (`#track-quote` in
-    `index.html`/`app.js`) — phone number, weekly/monthly selector, required consent checkbox,
-    and a status/unsubscribe view once active.
+    `index.html`/`app.js`) — phone number, weekly/monthly/**continuous** selector, required
+    consent checkbox, and a status view once active with **Recheck now** and **Stop watching**.
+  - Added a `continuous` frequency option (0ms due-interval — checked on every cron tick/
+    `run-now` call) and copy explaining that life events (accident, new driver, policy change)
+    don't have to wait for the next scheduled check — in a real deployment, texting "RECHECK" to
+    the Quotely number would do this instantly; in demo mode, the "Recheck now" button does the
+    same re-price immediately via `POST /api/subscriptions/:id/recheck`.
   - Verified end-to-end: subscribed via curl and in the browser, confirmed a forced-due manual
     cycle correctly detected an improvement, sent a mock SMS, and updated the stored best price;
     also verified in the browser (subscribe → status card renders → stop watching → form

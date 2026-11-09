@@ -61,9 +61,13 @@ No automated test suite exists yet (see `docs/PROJECT_STATUS.md`).
     endpoint and `lib/store.js` still work, nothing currently posts to them.
   - `GET /api/stats` — aggregate usage/feedback counts (read by `public/stats.html`).
   - `POST /api/subscribe` — validates the same quote input as `/api/quote` plus `phoneNumber`,
-    `frequency` (`weekly`/`monthly`), and `consent` (must be `true`); prices the quote once, then
-    creates a monitoring subscription via `lib/subscriptions.js`.
+    `frequency` (`weekly`/`monthly`/`continuous`), and `consent` (must be `true`); prices the
+    quote once, then creates a monitoring subscription via `lib/subscriptions.js`. `continuous`
+    has a 0ms due-interval, so it's checked on every cron tick/`run-now` call, not a real push.
   - `GET /api/subscriptions/:id` — status lookup (best price/carrier found so far, last checked).
+  - `POST /api/subscriptions/:id/recheck` — re-prices one subscription immediately, bypassing its
+    due-check. Stands in for "text RECHECK to your Quotely number" (see `public/index.html`'s
+    `#track-quote` copy) — there's no live inbound number, so this button is the demo equivalent.
   - `POST /api/subscriptions/:id/cancel` — cancels a subscription.
   - `POST /api/monitor/run-now` — manually fires `lib/monitor.runCheckCycle()` instead of waiting
     for the cron schedule; a demo/testing helper, not auth-gated (nothing it does is unsafe — it
