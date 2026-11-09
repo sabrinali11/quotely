@@ -6,7 +6,6 @@ const { STATE_FACTORS } = require("./lib/stateFactors");
 const store = require("./lib/store");
 const subscriptions = require("./lib/subscriptions");
 const monitor = require("./lib/monitor");
-const { usingPostgres } = require("./lib/db");
 
 const app = express();
 const PORT = process.env.PORT || 4321;
@@ -269,12 +268,11 @@ app.post("/api/monitor/run-now", async (_req, res) => {
   }
 });
 
-subscriptions.migrate().catch((err) => {
-  console.error("subscriptions migration failed:", err);
-});
-
-if (!usingPostgres) {
-  console.log("DATABASE_URL not set — quote-monitoring subscriptions will use an in-memory store (not durable across restarts).");
+try {
+  subscriptions.migrate();
+  console.log("Quote-monitoring subscriptions stored in data/subscriptions.db");
+} catch (err) {
+  console.error("subscriptions database init failed:", err);
 }
 
 cron.schedule(process.env.CRON_SCHEDULE || "0 9 * * *", () => {

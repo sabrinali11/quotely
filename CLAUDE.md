@@ -17,10 +17,10 @@ when there's an actual improvement) is the product's core pitch, not just the in
 
 - Backend: Node.js + Express (`server.js`, no framework beyond Express)
 - Frontend: vanilla HTML/CSS/JS, no build step, no framework — `public/` served as static files
-- Rate-engine itself is still stateless/no-database. Quote-monitoring **subscriptions** are
-  persisted in Postgres when `DATABASE_URL` is set (a free-tier Neon/Supabase project is enough);
-  without it, `lib/subscriptions.js` falls back to an in-memory store that doesn't survive a
-  restart — fine for a local demo, not for a real deployment.
+- Rate-engine itself is still stateless. Quote-monitoring **subscriptions** are persisted in a
+  local SQLite file (`data/subscriptions.db`, gitignored, via Node's built-in `node:sqlite` —
+  no external database, account, or extra dependency). Deliberately **not** a hosted Postgres
+  (Neon/Supabase, etc.) — ruled out per the user; don't reintroduce one without asking again.
 - A flat local JSON file (`data/stats.json`, gitignored) still tracks usage/feedback counts only;
   unrelated to the rating logic or to subscriptions.
 - No auth, no payment processing. SMS is **mocked** (`lib/sms.js` logs what it would have sent —
@@ -35,13 +35,16 @@ npm install
 npm start   # serves http://localhost:4321 (or $PORT)
 ```
 
-Environment variables (all optional — the app runs without any of them, in degraded/demo mode):
+Environment variables (both optional):
 
 | Var | Purpose | If unset |
 |---|---|---|
-| `DATABASE_URL` | Postgres connection string for subscriptions | in-memory store, not durable |
 | `CRON_SCHEDULE` | cron expression for the recurring check cycle | defaults to daily at 9am |
 | `PORT` | HTTP port | defaults to 4321 |
+
+Requires Node ≥22.5 (`engines` in `package.json`, `.node-version`) for the built-in `node:sqlite`
+module used by subscriptions. If deploying somewhere that doesn't let you pin a Node version,
+check it supports this before relying on quote-monitoring persistence.
 
 `POST /api/monitor/run-now` fires a check cycle immediately without waiting for the schedule —
 useful for local testing and demos (see Architecture).
@@ -84,12 +87,11 @@ No automated test suite exists yet (see `docs/PROJECT_STATUS.md`).
   (`vehicleType`) factor in `rateEngine.js` when unmatched.
 - **`lib/store.js`** — flat-file JSON tracker (`data/stats.json`). Explicitly **not durable** on
   Render's free tier (filesystem may reset on spin-down/restart).
-- **`lib/db.js`** — Postgres pool + migration for the `subscriptions` table. No-ops (and
-  `usingPostgres` is `false`) when `DATABASE_URL` isn't set.
-- **`lib/subscriptions.js`** — CRUD for monitoring subscriptions. Same interface over two
-  backends (Postgres row / in-memory `Map`), selected by `usingPostgres`. `getDueSubscriptions()`
-  compares `lastCheckedAt` (or `createdAt` if never checked) against a 7-day/30-day interval based
-  on `frequency`.
+- **`lib/db.js`** — opens/creates the local SQLite file (`data/subscriptions.db`) via
+  `node:sqlite`'s `DatabaseSync` and ensures the `subscriptions` table exists.
+- **`lib/subscriptions.js`** — CRUD for monitoring subscriptions against that SQLite file.
+  `getDueSubscriptions()` compares `lastCheckedAt` (or `createdAt` if never checked) against a
+  7-day/30-day interval based on `frequency`.
 - **`lib/monitor.js`** — `runCheckCycle()`: re-runs `rateEngine.getQuotes()` for every due
   subscription's stored input, mock-texts the user only if the new best price is lower than the
   stored one, and updates the stored best price/carrier either way. This is "the agent" — see
@@ -148,7 +150,11 @@ No automated test suite exists yet (see `docs/PROJECT_STATUS.md`).
 
 - Render (free tier): https://quotelyinsurance.onrender.com — auto-deploys from GitHub `main`.
 - GitHub: https://github.com/sabrinali11/quotely (public).
-- `DATABASE_URL` must be set in Render's environment settings (not committed — see `.env.example`)
-  for subscriptions to persist there; without it Render runs the in-memory fallback, which is
-  lost on every spin-down.
+- Render must be running Node ≥22.5 for `node:sqlite` (see `.node-version`/`engines` above) — if
+  Render's build log shows an older Node, quote-monitoring will fail to start.
+- Like `data/stats.json`, `data/subscriptions.db` is **not durable** on Render's free tier — its
+  ephemeral filesystem isn't guaranteed to survive a spin-down/restart. There is no account-free
+  way to fix that on Render's free tier specifically; it would need either a paid persistent disk
+  or a hosted database, both deliberately out of scope per the user. Locally, this file is fully
+  durable across restarts.
 - See `docs/PROJECT_STATUS.md` for what's actually live vs. only committed locally.
