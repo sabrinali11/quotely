@@ -261,7 +261,28 @@
         <div class="step-indicator">Step 3 of 3 — Vehicle &amp; coverage</div>
         <h2>Your vehicle and coverage</h2>
 
+        <p class="step-sub">
+          Make and model is the single biggest lever on accuracy — a Honda CR-V and a BMW M5
+          can cost 3x apart for the same driver. Recognized models get a precise estimate;
+          anything else falls back to vehicle type.
+        </p>
+
         <div class="field-grid">
+          <div class="field-row">
+            <label for="vehicleMake">Vehicle make <span class="optional-tag">(optional)</span></label>
+            <input type="text" id="vehicleMake" name="vehicleMake" placeholder="e.g. Honda" />
+          </div>
+
+          <div class="field-row">
+            <label for="vehicleModel">Vehicle model <span class="optional-tag">(optional)</span></label>
+            <input type="text" id="vehicleModel" name="vehicleModel" placeholder="e.g. CR-V" />
+          </div>
+
+          <div class="field-row">
+            <label for="vehicleYear">Model year <span class="optional-tag">(optional)</span></label>
+            <input type="number" id="vehicleYear" name="vehicleYear" min="1980" placeholder="e.g. 2021" />
+          </div>
+
           <div class="field-row">
             <label for="vehicleType">Vehicle type</label>
             <select id="vehicleType" name="vehicleType" required>
@@ -272,6 +293,24 @@
               <option value="sports">Sports car</option>
               <option value="luxury">Luxury</option>
               <option value="ev">Electric vehicle</option>
+            </select>
+          </div>
+
+          <div class="field-row">
+            <label for="ownershipStatus">Ownership status</label>
+            <select id="ownershipStatus" name="ownershipStatus">
+              <option value="own" selected>Own outright</option>
+              <option value="financing">Financing</option>
+              <option value="leasing">Leasing</option>
+            </select>
+          </div>
+
+          <div class="field-row">
+            <label for="primaryUse">Primary use</label>
+            <select id="primaryUse" name="primaryUse">
+              <option value="pleasure" selected>Pleasure / errands</option>
+              <option value="commute">Commuting to work/school</option>
+              <option value="business">Business use</option>
             </select>
           </div>
 

@@ -401,6 +401,11 @@ body {
   font-weight: 600;
   color: var(--text);
 }
+.optional-tag {
+  font-weight: 400;
+  color: var(--text-muted);
+  font-size: 12px;
+}
 .field-row input[type="number"],
 .field-row select {
   padding: 11px 14px;

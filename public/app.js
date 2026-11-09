@@ -77,7 +77,12 @@ function restoreSavedProfile() {
   setFieldValue("teenDriverOnPolicy", saved.teenDriverOnPolicy);
   setFieldValue("hasCoverageLapse", saved.hasCoverageLapse);
   setFieldValue("homeAutoBundle", saved.homeAutoBundle);
+  setFieldValue("vehicleMake", saved.vehicleMake);
+  setFieldValue("vehicleModel", saved.vehicleModel);
+  setFieldValue("vehicleYear", saved.vehicleYear);
   setFieldValue("vehicleType", saved.vehicleType);
+  setFieldValue("ownershipStatus", saved.ownershipStatus);
+  setFieldValue("primaryUse", saved.primaryUse);
   setFieldValue("numVehicles", saved.numVehicles);
   setFieldValue("annualMileage", saved.annualMileage);
   setFieldValue("coverageLevel", saved.coverageLevel);
@@ -198,7 +203,13 @@ document.getElementById("form-step3").addEventListener("submit", async (e) => {
   e.preventDefault();
   const form = e.target;
 
+  state.vehicleMake = document.getElementById("vehicleMake").value.trim();
+  state.vehicleModel = document.getElementById("vehicleModel").value.trim();
+  const vehicleYearRaw = document.getElementById("vehicleYear").value;
+  state.vehicleYear = vehicleYearRaw === "" ? null : Number(vehicleYearRaw);
   state.vehicleType = document.getElementById("vehicleType").value;
+  state.ownershipStatus = document.getElementById("ownershipStatus").value;
+  state.primaryUse = document.getElementById("primaryUse").value;
   state.numVehicles = Number(document.getElementById("numVehicles").value);
   state.annualMileage = document.getElementById("annualMileage").value;
   state.coverageLevel = document.getElementById("coverageLevel").value;
@@ -228,7 +239,12 @@ document.getElementById("form-step3").addEventListener("submit", async (e) => {
         teenDriverOnPolicy: state.teenDriverOnPolicy,
         hasCoverageLapse: state.hasCoverageLapse,
         homeAutoBundle: state.homeAutoBundle,
+        vehicleMake: state.vehicleMake,
+        vehicleModel: state.vehicleModel,
+        vehicleYear: state.vehicleYear,
         vehicleType: state.vehicleType,
+        ownershipStatus: state.ownershipStatus,
+        primaryUse: state.primaryUse,
         numVehicles: state.numVehicles,
         annualMileage: state.annualMileage,
         coverageLevel: state.coverageLevel,
@@ -281,6 +297,12 @@ const CREDIT_TIER_LABELS = {
   excellent: "Excellent", good: "Good", fair: "Fair",
   poor: "Poor / building credit", not_shared: "Prefer not to say",
 };
+const OWNERSHIP_STATUS_LABELS = {
+  own: "Own outright", financing: "Financing", leasing: "Leasing",
+};
+const PRIMARY_USE_LABELS = {
+  pleasure: "Pleasure / errands", commute: "Commuting to work/school", business: "Business use",
+};
 
 // Plain-text profile summary to paste into a carrier's own quote form — real carrier quote
 // apps (checked GEICO and Progressive directly) don't accept prefill via URL, so this is the
@@ -295,7 +317,10 @@ function buildProfileSummaryText() {
     `Credit tier: ${CREDIT_TIER_LABELS[state.creditTier] || ""}`,
     `Driving record: ${DRIVING_RECORD_LABELS[state.drivingRecord] || ""}`,
     `Additional violations (last 3 yrs): ${state.violationsCount || 0}`,
+    `Vehicle: ${[state.vehicleYear, state.vehicleMake, state.vehicleModel].filter(Boolean).join(" ") || VEHICLE_TYPE_LABELS[state.vehicleType] || ""}`,
     `Vehicle type: ${VEHICLE_TYPE_LABELS[state.vehicleType] || ""}`,
+    `Ownership status: ${OWNERSHIP_STATUS_LABELS[state.ownershipStatus] || ""}`,
+    `Primary use: ${PRIMARY_USE_LABELS[state.primaryUse] || ""}`,
     `Vehicles on policy: ${state.numVehicles ?? 1}`,
     `Annual mileage: ${MILEAGE_LABELS[state.annualMileage] || ""}`,
     `Coverage level: ${COVERAGE_LABELS[state.coverageLevel] || ""}`,

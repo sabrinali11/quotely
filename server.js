@@ -22,6 +22,9 @@ const MILEAGE_BANDS = new Set(["low", "medium", "high", "very_high"]);
 const COVERAGE_LEVELS = new Set(["liability", "standard", "full_low_deductible"]);
 const VALID_STATES = new Set(Object.keys(STATE_FACTORS));
 const CREDIT_TIERS = new Set(["excellent", "good", "fair", "poor", "not_shared"]);
+const OWNERSHIP_STATUSES = new Set(["own", "financing", "leasing"]);
+const PRIMARY_USES = new Set(["pleasure", "commute", "business"]);
+const CURRENT_YEAR = new Date().getFullYear();
 
 function validateInput(body) {
   const errors = [];
@@ -75,6 +78,27 @@ function validateInput(body) {
     errors.push("violationsCount must be a number between 0 and 10");
   }
 
+  const ownershipStatus = body.ownershipStatus || "own";
+  if (!OWNERSHIP_STATUSES.has(ownershipStatus)) {
+    errors.push(`ownershipStatus must be one of: ${[...OWNERSHIP_STATUSES].join(", ")}`);
+  }
+
+  const primaryUse = body.primaryUse || "pleasure";
+  if (!PRIMARY_USES.has(primaryUse)) {
+    errors.push(`primaryUse must be one of: ${[...PRIMARY_USES].join(", ")}`);
+  }
+
+  let vehicleYear = null;
+  if (body.vehicleYear !== undefined && body.vehicleYear !== null && body.vehicleYear !== "") {
+    vehicleYear = Number(body.vehicleYear);
+    if (!Number.isFinite(vehicleYear) || vehicleYear < 1980 || vehicleYear > CURRENT_YEAR + 1) {
+      errors.push(`vehicleYear must be a number between 1980 and ${CURRENT_YEAR + 1}`);
+    }
+  }
+
+  const vehicleMake = typeof body.vehicleMake === "string" ? body.vehicleMake.trim().slice(0, 40) : "";
+  const vehicleModel = typeof body.vehicleModel === "string" ? body.vehicleModel.trim().slice(0, 40) : "";
+
   let currentAnnualPremium = null;
   if (body.currentMonthlyPremium !== undefined && body.currentMonthlyPremium !== null && body.currentMonthlyPremium !== "") {
     const monthly = Number(body.currentMonthlyPremium);
@@ -99,6 +123,11 @@ function validateInput(body) {
       numVehicles,
       violationsCount,
       currentAnnualPremium,
+      ownershipStatus,
+      primaryUse,
+      vehicleYear,
+      vehicleMake,
+      vehicleModel,
       maritalStatus: body.maritalStatus === "married" ? "married" : "single",
       teenDriverOnPolicy: !!body.teenDriverOnPolicy,
       hasCoverageLapse: !!body.hasCoverageLapse,
