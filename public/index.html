@@ -1,0 +1,353 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Quotely — Make insurers compete for you</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="logo">Quotely<span class="logo-dot">.</span></div>
+      <div class="tagline">An AI agent that makes car insurers compete for you</div>
+      <div class="live-badge"><span class="live-dot"></span>Rate engine live</div>
+    </div>
+  </header>
+
+  <main id="app">
+    <!-- INTRO -->
+    <section id="view-intro" class="view view-intro">
+      <div class="hero">
+        <div class="hero-eyebrow">For the driver who just got a renewal notice</div>
+        <h1>Stop overpaying because comparing takes too long.</h1>
+        <p class="hero-sub">
+          Quotely runs your exact profile — driving record, credit tier, vehicle, location, current
+          premium — against national and regional carriers, and tells you the one number that
+          matters: how much you're overpaying and who to switch to.
+        </p>
+        <button class="btn btn-primary btn-lg" id="start-btn">Get my estimates</button>
+        <div class="hero-chips">
+          <span class="chip">No account</span>
+          <span class="chip">No SSN</span>
+          <span class="chip">No credit pull</span>
+          <span class="chip">~2 minutes</span>
+        </div>
+        <div id="saved-banner" class="saved-banner hidden">
+          Welcome back — we pre-filled your last answers on this device.
+          <button type="button" id="clear-saved-btn" class="saved-banner-clear">Clear saved info</button>
+        </div>
+      </div>
+
+      <div class="stat-grid">
+        <div class="stat-card">
+          <div class="stat-number">+48<span class="stat-unit">%</span></div>
+          <div class="stat-label">average full-coverage premium increase after one at-fault accident</div>
+          <div class="stat-source">NerdWallet, Apr 2026</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number">$1,000<span class="stat-unit">+</span></div>
+          <div class="stat-label">more per year, every year the accident stays on your record</div>
+          <div class="stat-source">Amaro Law Firm</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number">53<span class="stat-unit">%</span></div>
+          <div class="stat-label">of U.S. auto policies weren't shopped even once in the past year</div>
+          <div class="stat-source">LexisNexis Risk Solutions, 2026</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number">42<span class="stat-unit">%</span></div>
+          <div class="stat-label">of drivers don't fully understand what their own policy covers</div>
+          <div class="stat-source">J.D. Power, 2026 U.S. Auto Insurance Study</div>
+        </div>
+      </div>
+
+      <div class="why-section">
+        <div class="why-copy">
+          <div class="section-eyebrow">Why this works</div>
+          <h2>Where you're insured matters as much as the accident.</h2>
+          <p>
+            Carriers price the same driver, the same crash, wildly differently — because they don't
+            expect you to leave. That gap only survives on inertia. Quotely exists to close it.
+          </p>
+          <ul class="why-list">
+            <li><strong>The inertia tax.</strong> A $2,400 policy quietly becomes $2,760 at renewal — drivers pay the extra $360/yr because comparing takes too long.</li>
+            <li><strong>It compounds nationally.</strong> 6.14 million police-reported crashes happen every year in the U.S. — each one triggers this same pricing gap for someone.</li>
+          </ul>
+        </div>
+        <div class="why-chart">
+          <div class="section-eyebrow">Same at-fault accident, two carriers</div>
+          <svg viewBox="0 0 320 180" class="carrier-bar-chart" role="img" aria-label="GEICO raises rates 56.9% after an at-fault accident versus 24.3% for State Farm">
+            <line x1="40" y1="10" x2="40" y2="150" stroke="var(--border)" stroke-width="1.5" />
+            <line x1="40" y1="150" x2="300" y2="150" stroke="var(--border)" stroke-width="1.5" />
+            <rect x="70" y="30" width="56" height="120" rx="6" fill="#005A2B" />
+            <text x="98" y="22" text-anchor="middle" class="chart-value">+56.9%</text>
+            <text x="98" y="168" text-anchor="middle" class="chart-label">GEICO</text>
+            <rect x="190" y="98" width="56" height="52" rx="6" fill="#D1262C" />
+            <text x="218" y="90" text-anchor="middle" class="chart-value">+24.3%</text>
+            <text x="218" y="168" text-anchor="middle" class="chart-label">State Farm</text>
+          </svg>
+          <p class="chart-fine">Same driver profile, same at-fault accident — the crash can cost one driver double what it costs another, depending only on who holds the policy.</p>
+        </div>
+      </div>
+
+      <div class="how-section">
+        <div class="section-eyebrow">How it works</div>
+        <div class="how-steps">
+          <div class="how-step">
+            <div class="how-num">01</div>
+            <h3>Tell Quotely your real profile</h3>
+            <p>Driving record, credit tier, vehicle, location, and what you're paying now — the same inputs underwriters actually use.</p>
+          </div>
+          <div class="how-step">
+            <div class="how-num">02</div>
+            <h3>It prices you against every carrier</h3>
+            <p>National carriers plus the regional insurer that often beats them in your specific state.</p>
+          </div>
+          <div class="how-step">
+            <div class="how-num">03</div>
+            <h3>You get one number: your savings</h3>
+            <p>Not a wall of quotes — your personalized savings and the single carrier to switch to.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="pledge-strip">
+        <div class="pledge"><span class="pledge-icon">✓</span>No coverage downgrades</div>
+        <div class="pledge"><span class="pledge-icon">✓</span>$0 cost to drivers</div>
+        <div class="pledge"><span class="pledge-icon">✓</span>We don't sell your data</div>
+        <div class="pledge"><span class="pledge-icon">✓</span>We only ping you when switching pays</div>
+      </div>
+
+      <div class="hero-cta-repeat">
+        <button class="btn btn-primary btn-lg" id="start-btn-2">Get my estimates</button>
+      </div>
+    </section>
+
+    <!-- STEP 1 -->
+    <section id="view-step1" class="view view-form hidden">
+      <form id="form-step1" novalidate>
+        <div class="step-indicator">Step 1 of 3 — You &amp; your driving record</div>
+        <h2>Tell us about you</h2>
+
+        <div class="field-grid">
+          <div class="field-row">
+            <label for="age">Age</label>
+            <input type="number" id="age" name="age" min="16" max="100" required placeholder="e.g. 34" />
+          </div>
+
+          <div class="field-row">
+            <label for="state">State</label>
+            <select id="state" name="state" required></select>
+          </div>
+
+          <div class="field-row">
+            <label for="maritalStatus">Marital status</label>
+            <select id="maritalStatus" name="maritalStatus">
+              <option value="single">Single</option>
+              <option value="married">Married</option>
+            </select>
+          </div>
+
+          <div class="field-row">
+            <label for="yearsLicensed">Years licensed to drive</label>
+            <input type="number" id="yearsLicensed" name="yearsLicensed" min="0" max="80" required placeholder="e.g. 14" />
+          </div>
+
+          <div class="field-row">
+            <label for="creditTier">Credit-based insurance tier</label>
+            <select id="creditTier" name="creditTier" required>
+              <option value="excellent">Excellent</option>
+              <option value="good" selected>Good</option>
+              <option value="fair">Fair</option>
+              <option value="poor">Poor / building credit</option>
+              <option value="not_shared">Prefer not to say</option>
+            </select>
+          </div>
+
+          <div class="field-row">
+            <label for="drivingRecord">Most significant item, last 3 years</label>
+            <select id="drivingRecord" name="drivingRecord" required>
+              <option value="clean">Clean — no claims or violations</option>
+              <option value="not_at_fault_claim">One not-at-fault claim</option>
+              <option value="speeding_ticket">One speeding ticket</option>
+              <option value="at_fault_accident">One at-fault accident</option>
+              <option value="dui">DUI / major violation</option>
+            </select>
+          </div>
+
+          <div class="field-row">
+            <label for="violationsCount">Additional tickets/claims, last 3 years</label>
+            <select id="violationsCount" name="violationsCount">
+              <option value="0" selected>None</option>
+              <option value="1">1 more</option>
+              <option value="2">2 more</option>
+              <option value="3">3+ more</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="field-row checkbox-row">
+          <label class="checkbox-label">
+            <input type="checkbox" id="militaryHousehold" name="militaryHousehold" />
+            I or an immediate family member served in the military (USAA eligible)
+          </label>
+        </div>
+
+        <div class="form-actions">
+          <button type="button" class="btn btn-ghost" id="back-to-intro">Back</button>
+          <button type="submit" class="btn btn-primary">Continue</button>
+        </div>
+      </form>
+    </section>
+
+    <!-- STEP 2 -->
+    <section id="view-step2" class="view view-form hidden">
+      <form id="form-step2" novalidate>
+        <div class="step-indicator">Step 2 of 3 — Your current policy &amp; household</div>
+        <h2>What are you paying now?</h2>
+        <p class="step-sub">
+          Optional, but this is what turns a generic comparison into your real savings number.
+        </p>
+
+        <div class="field-grid">
+          <div class="field-row">
+            <label for="currentInsurer">Current insurer</label>
+            <select id="currentInsurer" name="currentInsurer">
+              <option value="">Select (optional)</option>
+            </select>
+          </div>
+
+          <div class="field-row">
+            <label for="currentMonthlyPremium">Current monthly premium ($)</label>
+            <input type="number" id="currentMonthlyPremium" name="currentMonthlyPremium" min="0" max="5000" placeholder="e.g. 230" />
+          </div>
+        </div>
+
+        <div class="field-row checkbox-row">
+          <label class="checkbox-label">
+            <input type="checkbox" id="teenDriverOnPolicy" name="teenDriverOnPolicy" />
+            A teen driver will be added to this policy
+          </label>
+        </div>
+
+        <div class="field-row checkbox-row">
+          <label class="checkbox-label">
+            <input type="checkbox" id="hasCoverageLapse" name="hasCoverageLapse" />
+            I've had a lapse in insurance coverage in the last year
+          </label>
+        </div>
+
+        <div class="field-row checkbox-row">
+          <label class="checkbox-label">
+            <input type="checkbox" id="homeAutoBundle" name="homeAutoBundle" />
+            I'd bundle home or renters insurance with my auto policy
+          </label>
+        </div>
+
+        <div class="form-actions">
+          <button type="button" class="btn btn-ghost" id="back-to-step1">Back</button>
+          <button type="submit" class="btn btn-primary">Continue</button>
+        </div>
+      </form>
+    </section>
+
+    <!-- STEP 3 -->
+    <section id="view-step3" class="view view-form hidden">
+      <form id="form-step3" novalidate>
+        <div class="step-indicator">Step 3 of 3 — Vehicle &amp; coverage</div>
+        <h2>Your vehicle and coverage</h2>
+
+        <div class="field-grid">
+          <div class="field-row">
+            <label for="vehicleType">Vehicle type</label>
+            <select id="vehicleType" name="vehicleType" required>
+              <option value="sedan">Sedan</option>
+              <option value="suv">SUV</option>
+              <option value="truck">Truck</option>
+              <option value="minivan">Minivan</option>
+              <option value="sports">Sports car</option>
+              <option value="luxury">Luxury</option>
+              <option value="ev">Electric vehicle</option>
+            </select>
+          </div>
+
+          <div class="field-row">
+            <label for="numVehicles">Vehicles on this policy</label>
+            <select id="numVehicles" name="numVehicles">
+              <option value="1" selected>1</option>
+              <option value="2">2</option>
+              <option value="3">3</option>
+              <option value="4">4+</option>
+            </select>
+          </div>
+
+          <div class="field-row">
+            <label for="annualMileage">Annual mileage</label>
+            <select id="annualMileage" name="annualMileage" required>
+              <option value="low">Under 7,500 mi/yr</option>
+              <option value="medium" selected>7,500–12,000 mi/yr</option>
+              <option value="high">12,000–20,000 mi/yr</option>
+              <option value="very_high">Over 20,000 mi/yr</option>
+            </select>
+          </div>
+
+          <div class="field-row">
+            <label for="coverageLevel">Coverage level</label>
+            <select id="coverageLevel" name="coverageLevel" required>
+              <option value="liability">Liability only (state minimum)</option>
+              <option value="standard" selected>Full coverage (standard deductible)</option>
+              <option value="full_low_deductible">Full coverage (low deductible)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="field-row checkbox-row">
+          <label class="checkbox-label">
+            <input type="checkbox" id="goodStudentOrDefensiveCourse" name="goodStudentOrDefensiveCourse" />
+            Good-student or defensive-driving-course discount applies
+          </label>
+        </div>
+
+        <div class="field-row checkbox-row">
+          <label class="checkbox-label">
+            <input type="checkbox" id="antiTheftDevice" name="antiTheftDevice" />
+            Vehicle has an anti-theft device
+          </label>
+        </div>
+
+        <div class="form-actions">
+          <button type="button" class="btn btn-ghost" id="back-to-step2">Back</button>
+          <button type="submit" class="btn btn-primary">See my estimates</button>
+        </div>
+      </form>
+    </section>
+
+    <!-- RESULTS -->
+    <section id="view-results" class="view view-results hidden">
+      <div id="results-summary" class="results-summary"></div>
+      <div id="best-match" class="best-match-card"></div>
+
+      <details class="compare-all">
+        <summary>Compare all estimates</summary>
+        <div id="results-list" class="results-list"></div>
+      </details>
+
+      <div class="results-footer">
+        <button class="btn btn-ghost" id="start-over-btn">Start over</button>
+      </div>
+      <p class="disclaimer">
+        Estimates only — modeled from published industry rate patterns and the inputs above, not
+        live quotes from any carrier. Actual prices depend on your full driving history and
+        underwriting rules that vary by state. "Start my switch" hands you to that carrier's real
+        site to finish — Quotely doesn't sell your data or take a referral fee in this demo.
+      </p>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>

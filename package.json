@@ -1,0 +1,13 @@
+{
+  "name": "quotely",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Quotely - AI agent that makes car insurers compete for you (local demo)",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2"
+  }
+}
