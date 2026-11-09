@@ -683,6 +683,30 @@ body {
 }
 .quote-actions a:hover { background: var(--border); }
 
+.track-quote-card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 20px 22px;
+  margin-bottom: 20px;
+}
+.track-quote-card h3 {
+  color: var(--navy);
+  margin-bottom: 6px;
+}
+.track-quote-sub {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-bottom: 16px;
+}
+.track-quote-form .field-grid {
+  margin-bottom: 4px;
+}
+.track-quote-status p {
+  font-size: 14px;
+  margin-bottom: 12px;
+}
+
 .results-footer {
   margin-top: 28px;
   display: flex;

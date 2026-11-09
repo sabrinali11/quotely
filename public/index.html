@@ -375,6 +375,40 @@
         <div id="results-list" class="results-list"></div>
       </details>
 
+      <div id="track-quote" class="track-quote-card">
+        <h3>Keep watching this quote for me</h3>
+        <p class="track-quote-sub">
+          Quotely will re-run your numbers on a schedule and text you only if it finds something
+          cheaper. <strong>Demo mode:</strong> no real texts are sent yet — Quotely logs what it
+          would have sent so this flow is demoable before a real SMS provider is wired in.
+        </p>
+
+        <form id="form-track-quote" class="track-quote-form">
+          <div class="field-grid">
+            <div class="field-row">
+              <label for="trackPhone">Phone number</label>
+              <input type="tel" id="trackPhone" placeholder="(555) 123-4567" />
+            </div>
+            <div class="field-row">
+              <label for="trackFrequency">Check how often?</label>
+              <select id="trackFrequency">
+                <option value="weekly">Every week</option>
+                <option value="monthly">Every month</option>
+              </select>
+            </div>
+          </div>
+          <div class="field-row checkbox-row">
+            <label class="checkbox-label">
+              <input type="checkbox" id="trackConsent" />
+              Text me updates about this quote (demo only — no real texts are sent)
+            </label>
+          </div>
+          <button type="submit" class="btn btn-ghost">Start watching this quote</button>
+        </form>
+
+        <div id="track-quote-status" class="track-quote-status hidden"></div>
+      </div>
+
       <div class="results-footer">
         <button class="btn btn-ghost" id="start-over-btn">Start over</button>
       </div>

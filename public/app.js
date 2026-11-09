@@ -20,6 +20,7 @@ const CURRENT_INSURER_OPTIONS = [
 const state = {};
 
 const STORAGE_KEY = "quotely_profile_v1";
+const SUBSCRIPTION_STORAGE_KEY = "quotely_subscription_v1";
 
 // Persisted only in this browser (localStorage) — never sent anywhere until the user
 // submits a step. Wrapped in try/catch since private-browsing or blocked storage can throw.
@@ -260,6 +261,7 @@ document.getElementById("form-step3").addEventListener("submit", async (e) => {
 
     const data = await res.json();
     renderResults(data);
+    setupTrackQuote();
     showView("results");
   } catch (err) {
     showFormError(form, err.message || "Something went wrong. Please try again.");
@@ -461,6 +463,154 @@ function renderResults(data) {
     listEl.appendChild(card);
   });
 }
+
+function saveSubscriptionId(id) {
+  try {
+    localStorage.setItem(SUBSCRIPTION_STORAGE_KEY, id);
+  } catch (err) {
+    // ignore
+  }
+}
+
+function loadSubscriptionId() {
+  try {
+    return localStorage.getItem(SUBSCRIPTION_STORAGE_KEY);
+  } catch (err) {
+    return null;
+  }
+}
+
+function clearSubscriptionId() {
+  try {
+    localStorage.removeItem(SUBSCRIPTION_STORAGE_KEY);
+  } catch (err) {
+    // ignore
+  }
+}
+
+function money0(n) {
+  return `$${Math.round(n).toLocaleString("en-US")}`;
+}
+
+function renderTrackStatus(sub) {
+  const statusEl = document.getElementById("track-quote-status");
+  const lastChecked = sub.lastCheckedAt
+    ? new Date(sub.lastCheckedAt).toLocaleDateString()
+    : "not yet — first check is coming up";
+  statusEl.innerHTML = `
+    <p>
+      Watching this quote <strong>${sub.frequency === "weekly" ? "every week" : "every month"}</strong>.
+      Best found so far: <strong>${sub.bestCarrierName}</strong> at ${money0(sub.bestAnnualPremium)}/yr.
+      Last checked: ${lastChecked}.
+    </p>
+    <button type="button" class="btn btn-ghost" id="stop-tracking-btn">Stop watching</button>
+  `;
+  statusEl.classList.remove("hidden");
+  document.getElementById("form-track-quote").classList.add("hidden");
+
+  document.getElementById("stop-tracking-btn").addEventListener("click", async () => {
+    try {
+      await fetch(`/api/subscriptions/${sub.id}/cancel`, { method: "POST" });
+    } catch (err) {
+      // best-effort — still clear locally so the UI doesn't get stuck
+    }
+    clearSubscriptionId();
+    statusEl.classList.add("hidden");
+    statusEl.innerHTML = "";
+    document.getElementById("form-track-quote").classList.remove("hidden");
+  });
+}
+
+async function setupTrackQuote() {
+  const form = document.getElementById("form-track-quote");
+  const statusEl = document.getElementById("track-quote-status");
+  statusEl.classList.add("hidden");
+  statusEl.innerHTML = "";
+  form.classList.remove("hidden");
+
+  const existingId = loadSubscriptionId();
+  if (existingId) {
+    try {
+      const res = await fetch(`/api/subscriptions/${existingId}`);
+      if (res.ok) {
+        const sub = await res.json();
+        if (sub.status === "active") {
+          renderTrackStatus(sub);
+          return;
+        }
+      }
+      clearSubscriptionId();
+    } catch (err) {
+      // couldn't reach the API — fall through and show the form
+    }
+  }
+}
+
+document.getElementById("form-track-quote").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const form = e.target;
+  const phoneNumber = document.getElementById("trackPhone").value.trim();
+  const frequency = document.getElementById("trackFrequency").value;
+  const consent = document.getElementById("trackConsent").checked;
+
+  if (!consent) {
+    showFormError(form, "Please check the consent box so Quotely can text you updates.");
+    return;
+  }
+
+  const submitBtn = form.querySelector('button[type="submit"]');
+  submitBtn.disabled = true;
+  submitBtn.textContent = "Starting...";
+
+  try {
+    const res = await fetch("/api/subscribe", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        age: state.age,
+        state: state.state,
+        maritalStatus: state.maritalStatus,
+        creditTier: state.creditTier,
+        yearsLicensed: state.yearsLicensed,
+        drivingRecord: state.drivingRecord,
+        violationsCount: state.violationsCount,
+        militaryHousehold: state.militaryHousehold,
+        currentMonthlyPremium: state.currentMonthlyPremium,
+        teenDriverOnPolicy: state.teenDriverOnPolicy,
+        hasCoverageLapse: state.hasCoverageLapse,
+        homeAutoBundle: state.homeAutoBundle,
+        vehicleMake: state.vehicleMake,
+        vehicleModel: state.vehicleModel,
+        vehicleYear: state.vehicleYear,
+        vehicleType: state.vehicleType,
+        ownershipStatus: state.ownershipStatus,
+        primaryUse: state.primaryUse,
+        numVehicles: state.numVehicles,
+        annualMileage: state.annualMileage,
+        coverageLevel: state.coverageLevel,
+        goodStudentOrDefensiveCourse: state.goodStudentOrDefensiveCourse,
+        antiTheftDevice: state.antiTheftDevice,
+        phoneNumber,
+        frequency,
+        consent,
+      }),
+    });
+
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      throw new Error(body.details ? body.details.join("; ") : "Could not start watching this quote.");
+    }
+
+    const sub = await res.json();
+    saveSubscriptionId(sub.id);
+    renderTrackStatus(sub);
+  } catch (err) {
+    showFormError(form, err.message || "Something went wrong. Please try again.");
+  } finally {
+    submitBtn.disabled = false;
+    submitBtn.textContent = "Start watching this quote";
+  }
+});
 
 populateStateSelect();
 populateCurrentInsurerSelect();

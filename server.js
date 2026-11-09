@@ -1,11 +1,21 @@
 const path = require("path");
+const cron = require("node-cron");
 const express = require("express");
 const { getQuotes } = require("./lib/rateEngine");
 const { STATE_FACTORS } = require("./lib/stateFactors");
 const store = require("./lib/store");
+const subscriptions = require("./lib/subscriptions");
+const monitor = require("./lib/monitor");
+const { usingPostgres } = require("./lib/db");
 
 const app = express();
 const PORT = process.env.PORT || 4321;
+const FREQUENCIES = new Set(["weekly", "monthly"]);
+const PHONE_DIGITS_RE = /^1?\d{10}$/;
+
+function normalizePhone(raw) {
+  return String(raw || "").trim().replace(/[^\d]/g, "");
+}
 
 app.use(express.json());
 app.use(express.static(path.join(__dirname, "public")));
@@ -164,6 +174,111 @@ app.post("/api/feedback", (req, res) => {
 
 app.get("/api/stats", (_req, res) => {
   res.json(store.getStats());
+});
+
+// Recurring quote-monitoring ("keep watching this quote for me"). SMS is mocked (see
+// lib/sms.js) — no real texts are sent yet.
+app.post("/api/subscribe", async (req, res) => {
+  const { errors, clean } = validateInput(req.body || {});
+  if (errors.length) {
+    return res.status(400).json({ error: "invalid_input", details: errors });
+  }
+
+  const phoneDigits = normalizePhone(req.body.phoneNumber);
+  if (!PHONE_DIGITS_RE.test(phoneDigits)) {
+    return res.status(400).json({ error: "invalid_phone", details: ["phoneNumber must be a valid 10-digit US phone number"] });
+  }
+
+  const frequency = req.body.frequency;
+  if (!FREQUENCIES.has(frequency)) {
+    return res.status(400).json({ error: "invalid_frequency", details: [`frequency must be one of: ${[...FREQUENCIES].join(", ")}`] });
+  }
+
+  if (req.body.consent !== true) {
+    return res.status(400).json({ error: "consent_required", details: ["consent to be texted is required"] });
+  }
+
+  const { quotes } = getQuotes(clean);
+  const best = quotes[0];
+  const phoneNumber = `+1${phoneDigits.slice(-10)}`;
+
+  try {
+    const sub = await subscriptions.createSubscription({
+      phoneNumber,
+      frequency,
+      quoteInput: clean,
+      bestAnnualPremium: best.annualPremium,
+      bestCarrierName: best.carrierName,
+    });
+    res.json({
+      id: sub.id,
+      status: sub.status,
+      frequency: sub.frequency,
+      bestAnnualPremium: sub.bestAnnualPremium,
+      bestCarrierName: sub.bestCarrierName,
+      createdAt: sub.createdAt,
+      lastCheckedAt: sub.lastCheckedAt,
+    });
+  } catch (err) {
+    console.error("subscribe failed:", err);
+    res.status(503).json({ error: "monitoring_unavailable" });
+  }
+});
+
+app.get("/api/subscriptions/:id", async (req, res) => {
+  try {
+    const sub = await subscriptions.getSubscription(req.params.id);
+    if (!sub) return res.status(404).json({ error: "not_found" });
+    res.json({
+      id: sub.id,
+      status: sub.status,
+      frequency: sub.frequency,
+      bestAnnualPremium: sub.bestAnnualPremium,
+      bestCarrierName: sub.bestCarrierName,
+      createdAt: sub.createdAt,
+      lastCheckedAt: sub.lastCheckedAt,
+      checksRun: sub.checksRun,
+    });
+  } catch (err) {
+    console.error("get subscription failed:", err);
+    res.status(503).json({ error: "monitoring_unavailable" });
+  }
+});
+
+app.post("/api/subscriptions/:id/cancel", async (req, res) => {
+  try {
+    const ok = await subscriptions.cancelSubscription(req.params.id);
+    if (!ok) return res.status(404).json({ error: "not_found" });
+    res.json({ ok: true });
+  } catch (err) {
+    console.error("cancel subscription failed:", err);
+    res.status(503).json({ error: "monitoring_unavailable" });
+  }
+});
+
+// Demo/testing helper: fires a monitor cycle immediately instead of waiting for the cron
+// schedule (useful since in-process cron doesn't reliably fire on Render's free tier once the
+// app has spun down — see CLAUDE.md).
+app.post("/api/monitor/run-now", async (_req, res) => {
+  try {
+    const results = await monitor.runCheckCycle();
+    res.json({ checked: results.length, results });
+  } catch (err) {
+    console.error("manual monitor run failed:", err);
+    res.status(503).json({ error: "monitoring_unavailable" });
+  }
+});
+
+subscriptions.migrate().catch((err) => {
+  console.error("subscriptions migration failed:", err);
+});
+
+if (!usingPostgres) {
+  console.log("DATABASE_URL not set — quote-monitoring subscriptions will use an in-memory store (not durable across restarts).");
+}
+
+cron.schedule(process.env.CRON_SCHEDULE || "0 9 * * *", () => {
+  monitor.runCheckCycle().catch((err) => console.error("scheduled monitor run failed:", err));
 });
 
 app.listen(PORT, () => {

@@ -8,6 +8,8 @@
     "start": "node server.js"
   },
   "dependencies": {
-    "express": "^4.19.2"
+    "express": "^4.19.2",
+    "node-cron": "^3.0.3",
+    "pg": "^8.13.1"
   }
 }

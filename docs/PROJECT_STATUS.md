@@ -1,6 +1,6 @@
 # Project Status — Quotely
 
-Last updated: 2026-11-09
+Last updated: 2026-11-09 (quote-monitoring feature added same day, after this file's first pass)
 
 ## What Quotely is
 
@@ -13,6 +13,34 @@ live insurance quoting.
 
 ## Implemented features
 
+- **Quote monitoring ("the agent"):** from the results view, a user can opt in to have Quotely
+  re-run their numbers weekly or monthly and alert them only if it finds a cheaper rate than the
+  best one seen so far. Built this session:
+  - `lib/subscriptions.js` + `lib/db.js` — Postgres-backed when `DATABASE_URL` is set, otherwise
+    an in-memory fallback (not durable — fine for a demo, not for the live deployment).
+  - `lib/monitor.js` — the actual re-check/compare loop, run by an in-process `node-cron` job
+    (`CRON_SCHEDULE` env var, default daily) and also triggerable on demand via
+    `POST /api/monitor/run-now` for testing/demos.
+  - `lib/sms.js` — **mocked** SMS send (no Twilio/carrier account exists). Logs
+    `[MOCK SMS] to ***-***-1234: ...` to the console and to `data/sms-log.json`.
+  - New endpoints: `POST /api/subscribe`, `GET /api/subscriptions/:id`,
+    `POST /api/subscriptions/:id/cancel`.
+  - New UI: "Keep watching this quote for me" card in the results view (`#track-quote` in
+    `index.html`/`app.js`) — phone number, weekly/monthly selector, required consent checkbox,
+    and a status/unsubscribe view once active.
+  - Verified end-to-end locally: subscribed, confirmed the in-memory store and a forced-due
+    manual cycle correctly detected an improvement, sent a mock SMS, and updated the stored best
+    price; also verified in the browser (subscribe → status card renders → stop watching →
+    form reappears).
+  - **Known gap:** subscription status is only re-displayed after the user submits a fresh quote
+    (step 3) in the same session — a bare page reload loses the on-screen status card even though
+    the subscription itself is still active server-side (the id is still in localStorage, just
+    not checked until the next quote submission). Not fixed this session; low-risk since the
+    monitoring itself doesn't depend on the tab staying open.
+  - **Known gap:** real persistence requires the user to provision their own free-tier Postgres
+    (Neon/Supabase) and set `DATABASE_URL` on Render — not done as part of this session, so the
+    live Render deployment is still running the in-memory fallback until that's set.
+  - Real SMS (Twilio or otherwise) was explicitly deferred — see `CLAUDE.md` → Constraints.
 - 3-step intake form (~24 fields): driver/record → current policy/household → vehicle/coverage.
   Covers age, state, marital status, years licensed, credit tier, driving record + violation
   count, military household, current insurer + premium, teen driver, coverage lapse, home/auto
@@ -76,6 +104,17 @@ assumed from the settings.
    on this machine — it tracks two unrelated static-site projects under `~/Downloads` and has its
    own GitHub remote (`uva-peaks-profs`). It was flagged to the user and left untouched; it is not
    part of Quotely and this project's `.git` is a separate, independent repo.
+7. **Quote monitoring has no `DATABASE_URL` configured yet anywhere** (local or Render) — both
+   currently run on the in-memory subscription store, so subscriptions don't survive a restart.
+   Needs the user to provision a free-tier Postgres project and set the env var in both places.
+8. **SMS is mocked, not real** — `lib/sms.js` logs what it would send; no Twilio (or other
+   provider) account/credentials exist. Deliberate, per `CLAUDE.md` → Constraints.
+9. **In-process `node-cron` won't reliably fire on Render's free tier** once the app spins down
+   from inactivity — a deliberate tradeoff (see `CLAUDE.md`). `POST /api/monitor/run-now` is the
+   manual workaround for testing/demos; a real deployment would need an external trigger (e.g. a
+   scheduled GitHub Action hitting that endpoint) to be reliable.
+10. The quote-monitoring status card only re-renders after a fresh quote submission, not on a
+    bare page reload — see "Implemented features" above.
 
 ## Pending / suggested next steps
 
